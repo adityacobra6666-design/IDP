@@ -1,0 +1,49 @@
+# Python & Backend
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+backend/venv/
+backend/.venv/
+backend/*.db
+backend/*.sqlite3
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Media & Storage Uploads
+backend/storage/
+backend/uploads/
+backend/processed/
+
+# Node & Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+.npm
+*.log
+
+# Environment & Config Files
+.env
+.env.local
+.env.*.local
+*.env
+
+# IDE & OS Files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary JSON scratch files
+session_bad.json
+test_sess.json
+del_sess.json

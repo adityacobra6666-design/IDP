@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: neurotrack_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: neurotrack
+      POSTGRES_PASSWORD: neurotrack123
+      POSTGRES_DB: neurotrack
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neurotrack -d neurotrack"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: neurotrack_backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://neurotrack:neurotrack123@postgres:5432/neurotrack
+      - UPLOAD_DIR=/app/uploads
+      - PROCESSED_DIR=/app/processed
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/processed:/app/processed
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: neurotrack_frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
