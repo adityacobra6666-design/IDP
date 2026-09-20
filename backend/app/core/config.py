@@ -15,8 +15,8 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_MB: int = 100
     
     # Database Settings
-    # Default to PostgreSQL, with SQLite fallback if postgres driver/url fails during local testing
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://neurotrack:neurotrack123@localhost:5432/neurotrack")
+    # Local runs use SQLite; Docker supplies DATABASE_URL for PostgreSQL.
+    DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR}/neurotrack.db")
     SQLITE_FALLBACK_URL: str = f"sqlite:///{BASE_DIR}/neurotrack.db"
     
     # Quality Gate Thresholds

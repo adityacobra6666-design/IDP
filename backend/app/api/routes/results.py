@@ -5,7 +5,6 @@ from app.models.database import get_db
 from app.core.exceptions import ResourceNotFoundException
 from app.schemas.quality import QualityAssessmentResponse
 from app.schemas.features import BehavioralFeatureResponse
-from app.services.analysis_service import AnalysisService
 from app.repositories.recording_repository import RecordingRepository
 from app.repositories.analysis_repository import AnalysisRepository
 
@@ -40,6 +39,8 @@ def get_session_features(session_id: str, db: Session = Depends(get_db)):
 @router.get("/{session_id}/results")
 def get_session_results(session_id: str, db: Session = Depends(get_db)):
     """Get complete structured analysis result for a session."""
+    from app.services.analysis_service import AnalysisService
+
     service = AnalysisService(db)
     try:
         return service.get_session_analysis_results(session_id)

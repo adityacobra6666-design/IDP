@@ -16,7 +16,6 @@ from app.repositories.session_repository import SessionRepository
 from app.repositories.child_repository import ChildRepository
 from app.repositories.task_repository import TaskRepository
 from app.repositories.recording_repository import RecordingRepository
-from app.services.analysis_service import AnalysisService
 from app.services.video_service import VideoService
 
 router = APIRouter(prefix="/sessions", tags=["Sessions & Video Analysis"])
@@ -152,6 +151,8 @@ def upload_recording(
 @router.post("/{session_id}/analyze")
 def trigger_analysis(session_id: str, db: Session = Depends(get_db)):
     """Trigger the computer vision and feature extraction analysis pipeline."""
+    from app.services.analysis_service import AnalysisService
+
     service = AnalysisService(db)
     try:
         res = service.process_session_recording(session_id)

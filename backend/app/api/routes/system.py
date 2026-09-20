@@ -1,8 +1,4 @@
-import cv2
-import mediapipe as mp
 from fastapi import APIRouter
-from app.cv.face import FaceDetector
-from app.cv.pose import PoseDetector
 from app.core.logging import logger
 
 router = APIRouter(prefix="/system", tags=["System & CV Status"])
@@ -10,6 +6,11 @@ router = APIRouter(prefix="/system", tags=["System & CV Status"])
 @router.get("/cv-status")
 def cv_status_check():
     """Diagnostic endpoint checking OpenCV and MediaPipe status and versioning."""
+    import cv2
+    import mediapipe as mp
+    from app.cv.face import FaceDetector
+    from app.cv.pose import PoseDetector
+
     face_ok = False
     pose_ok = False
     

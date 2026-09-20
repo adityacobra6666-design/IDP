@@ -1,5 +1,3 @@
-import cv2
-import mediapipe as mp
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -10,8 +8,6 @@ from app.core.logging import logger
 from app.core.exceptions import NeuroTrackException
 from app.models.database import engine, Base, SessionLocal
 from app.api.routes import health, children, tasks, sessions, results, system
-from app.cv.face import FaceDetector
-from app.cv.pose import PoseDetector
 from app.repositories.task_repository import TaskRepository
 
 # Auto-create DB tables schema
@@ -21,25 +17,6 @@ Base.metadata.create_all(bind=engine)
 with SessionLocal() as db:
     task_repo = TaskRepository(db)
     task_repo.seed_default_tasks()
-
-# Startup CV dependency verification check
-def perform_startup_cv_check():
-    logger.info("Performing Computer Vision dependency verification on startup...")
-    try:
-        logger.info(f"[CV] OpenCV: OK (v{cv2.__version__})")
-        logger.info(f"[CV] MediaPipe: OK (v{getattr(mp, '__version__', 'unknown')})")
-        
-        fd = FaceDetector()
-        logger.info("[CV] Face pipeline: OK")
-        fd.close()
-
-        pd = PoseDetector()
-        logger.info("[CV] Pose pipeline: OK")
-        pd.close()
-    except Exception as e:
-        logger.error(f"[CV WARNING] Computer Vision startup check warning: {e}", exc_info=True)
-
-perform_startup_cv_check()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
