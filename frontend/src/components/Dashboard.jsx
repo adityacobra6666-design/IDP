@@ -106,11 +106,16 @@ export default function Dashboard({ childrenList, sessionsList, onSelectSession,
             </thead>
             <tbody>
               {sessionsList.map(session => {
-                const childIdLabel = session.child ? session.child.external_id : (session.child_id ? `C-${session.child_id.substring(0, 6)}` : 'N/A');
+                const childProfile = session.child || childrenList.find(c => c.id === session.child_id);
+                const childIdLabel = childProfile 
+                  ? (childProfile.profile_number 
+                      ? `Profile #${String(childProfile.profile_number).padStart(2, '0')} (${childProfile.external_id})` 
+                      : childProfile.external_id) 
+                  : 'Subject Profile';
                 return (
                   <tr key={session.id}>
                     <td style={{ fontFamily: 'var(--font-code)', fontSize: '0.85rem' }}>
-                      {session.id.substring(0, 8)}...
+                      Session #{session.id.substring(0, 6)}
                     </td>
                     <td style={{ fontWeight: 600, color: 'var(--primary)' }}>
                       {childIdLabel}

@@ -13,6 +13,7 @@ class ChildCreate(ChildBase):
 
 class ChildResponse(ChildBase):
     id: str
+    profile_number: Optional[int] = None
     created_at: datetime
     updated_at: datetime
 

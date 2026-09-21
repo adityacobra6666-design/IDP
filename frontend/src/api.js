@@ -28,6 +28,42 @@ export async function createChild(data) {
   return res.json();
 }
 
+export async function deleteChild(childId) {
+  const res = await fetch(`${API_BASE}/children/${childId}`, {
+    method: 'DELETE'
+  });
+  if (!res.ok && res.status !== 204) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Unable to delete child profile.');
+  }
+  return true;
+}
+
+export async function fetchParentQuestionnaire(childId) {
+  const res = await fetch(`${API_BASE}/children/${childId}/questionnaire`);
+  if (res.status === 404) {
+    return null; // Parent questionnaire not completed
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to fetch parent questionnaire');
+  }
+  return res.json();
+}
+
+export async function saveParentQuestionnaire(childId, questionnaireData) {
+  const res = await fetch(`${API_BASE}/children/${childId}/questionnaire`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(questionnaireData)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to save parent questionnaire');
+  }
+  return res.json();
+}
+
 export async function fetchTasks() {
   const res = await fetch(`${API_BASE}/tasks`);
   if (!res.ok) {

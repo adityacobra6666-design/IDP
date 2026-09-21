@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Users, UserPlus } from 'lucide-react';
+import { Users, UserPlus, Trash2, ClipboardList, AlertTriangle } from 'lucide-react';
+import ParentQuestionnaireModal from './ParentQuestionnaireModal';
 
-export default function ChildManager({ childrenList, onCreateChild }) {
+export default function ChildManager({ childrenList, onCreateChild, onDeleteChild, onRefresh }) {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     external_id: '',
@@ -11,6 +12,9 @@ export default function ChildManager({ childrenList, onCreateChild }) {
   });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [childToDelete, setChildToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [activeQuestionnaireChild, setActiveQuestionnaireChild] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,6 +34,20 @@ export default function ChildManager({ childrenList, onCreateChild }) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const confirmDeleteChild = async () => {
+    if (!childToDelete) return;
+    setDeleting(true);
+    try {
+      await onDeleteChild(childToDelete.id);
+      setChildToDelete(null);
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      alert(err.message || 'Failed to delete child profile.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -110,29 +128,115 @@ export default function ChildManager({ childrenList, onCreateChild }) {
       )}
 
       <div className="card">
-        <table className="data-table">
-          <thead>
-            <tr>
-              <th>Profile ID</th>
-              <th>External ID</th>
-              <th>Age (Months)</th>
-              <th>Gender</th>
-              <th>Registered Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {childrenList.map(child => (
-              <tr key={child.id}>
-                <td style={{ fontFamily: 'var(--font-code)', fontSize: '0.85rem' }}>{child.id.substring(0, 8)}...</td>
-                <td style={{ fontWeight: 700, color: 'var(--primary)' }}>{child.external_id}</td>
-                <td>{child.age_months} mos ({ (child.age_months / 12).toFixed(1) } yrs)</td>
-                <td>{child.gender}</td>
-                <td style={{ color: 'var(--text-muted)' }}>{new Date(child.created_at).toLocaleDateString()}</td>
+        {childrenList.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
+            <p style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text-main)', marginBottom: '0.4rem' }}>
+              No child profiles registered.
+            </p>
+            <p style={{ fontSize: '0.9rem' }}>
+              Click "Add Child Profile" above to register a subject.
+            </p>
+          </div>
+        ) : (
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>PROFILE #</th>
+                <th>EXTERNAL ID</th>
+                <th>AGE (MONTHS)</th>
+                <th>GENDER</th>
+                <th>REGISTERED DATE</th>
+                <th>PARENT QUESTIONNAIRE</th>
+                <th>ACTIONS</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {childrenList.map((child, idx) => {
+                const profileNumStr = child.profile_number 
+                  ? `Profile #${String(child.profile_number).padStart(2, '0')}` 
+                  : `Profile #${String(idx + 1).padStart(2, '0')}`;
+
+                return (
+                  <tr key={child.id}>
+                    <td style={{ fontWeight: 700, color: 'var(--primary)', fontFamily: 'var(--font-code)' }}>
+                      {profileNumStr}
+                    </td>
+                    <td style={{ fontWeight: 600 }}>{child.external_id}</td>
+                    <td>{child.age_months} mos ({ (child.age_months / 12).toFixed(1) } yrs)</td>
+                    <td>{child.gender}</td>
+                    <td style={{ color: 'var(--text-muted)' }}>{new Date(child.created_at).toLocaleDateString()}</td>
+                    <td>
+                      <button
+                        className="btn-secondary"
+                        style={{ padding: '0.3rem 0.65rem', fontSize: '0.82rem', gap: '0.35rem' }}
+                        onClick={() => setActiveQuestionnaireChild(child)}
+                      >
+                        <ClipboardList size={14} style={{ color: 'var(--primary)' }} />
+                        <span>Parent Questionnaire</span>
+                      </button>
+                    </td>
+                    <td>
+                      <button 
+                        className="btn-secondary" 
+                        style={{ padding: '0.35rem 0.6rem', color: 'var(--status-reassess)', borderColor: 'var(--badge-reassess-border)' }}
+                        title="Delete Profile"
+                        onClick={() => setChildToDelete(child)}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {childToDelete && (
+        <div style={{ position: 'fixed', inset: 0, background: 'var(--bg-modal-backdrop)', backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem' }}>
+          <div className="card" style={{ maxWidth: '520px', width: '100%', borderColor: 'var(--badge-reassess-border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'var(--badge-reassess-text)', marginBottom: '1rem' }}>
+              <AlertTriangle size={24} />
+              <h2 className="section-heading" style={{ margin: 0, color: 'var(--badge-reassess-text)', fontSize: '1.2rem' }}>
+                Delete this child profile?
+              </h2>
+            </div>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+              This will permanently delete the child profile <strong style={{ color: 'var(--text-main)' }}>{childToDelete.profile_number ? `Profile #${String(childToDelete.profile_number).padStart(2, '0')}` : childToDelete.external_id}</strong> ({childToDelete.external_id}) and all associated sessions, recordings, assessments, behavioral features and analysis results.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button 
+                className="btn-secondary" 
+                disabled={deleting}
+                onClick={() => setChildToDelete(null)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn-primary" 
+                style={{ background: 'linear-gradient(135deg, #ef4444 0%, #f43f5e 100%)', color: '#fff' }}
+                disabled={deleting}
+                onClick={confirmDeleteChild}
+              >
+                {deleting ? 'Deleting...' : 'Delete Profile'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Parent Questionnaire Modal */}
+      {activeQuestionnaireChild && (
+        <ParentQuestionnaireModal
+          child={activeQuestionnaireChild}
+          onClose={() => setActiveQuestionnaireChild(null)}
+          onSaved={() => {
+            if (onRefresh) onRefresh();
+          }}
+        />
+      )}
     </div>
   );
 }

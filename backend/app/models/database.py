@@ -40,3 +40,30 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def init_db_schema():
+    """Ensure tables exist, apply column additions if missing, and backfill profile_number."""
+    from sqlalchemy import inspect, text
+    Base.metadata.create_all(bind=engine)
+    try:
+        inspector = inspect(engine)
+        if "children" in inspector.get_table_names():
+            columns = [c["name"] for c in inspector.get_columns("children")]
+            if "profile_number" not in columns:
+                logger.info("Adding missing profile_number column to children table...")
+                with engine.begin() as conn:
+                    conn.execute(text("ALTER TABLE children ADD COLUMN profile_number INTEGER;"))
+            
+            # Backfill any null profile_number records
+            with engine.begin() as conn:
+                rows = conn.execute(text("SELECT id FROM children WHERE profile_number IS NULL ORDER BY created_at ASC;")).fetchall()
+                if rows:
+                    max_res = conn.execute(text("SELECT MAX(profile_number) FROM children WHERE profile_number IS NOT NULL;")).fetchone()
+                    current_num = (max_res[0] if max_res and max_res[0] is not None else 0)
+                    for row in rows:
+                        current_num += 1
+                        conn.execute(text("UPDATE children SET profile_number = :num WHERE id = :cid;"), {"num": current_num, "cid": row[0]})
+                    logger.info(f"Backfilled {len(rows)} child records with sequential profile numbers.")
+    except Exception as e:
+        logger.warning(f"Schema migration check error: {e}")
+

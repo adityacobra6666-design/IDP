@@ -5,7 +5,7 @@ import ChildManager from './components/ChildManager';
 import NewSession from './components/NewSession';
 import SessionDetail from './components/SessionDetail';
 import { ThemeProvider } from './context/ThemeContext';
-import { checkHealth, fetchChildren, fetchTasks, fetchSessions, createChild, createSession, deleteSession, uploadRecording, analyzeSession } from './api';
+import { checkHealth, fetchChildren, fetchTasks, fetchSessions, createChild, deleteChild, createSession, deleteSession, uploadRecording, analyzeSession } from './api';
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -63,6 +63,11 @@ function AppContent() {
     return newChild;
   };
 
+  const handleDeleteChild = async (childId) => {
+    await deleteChild(childId);
+    await refreshData();
+  };
+
   const handleDeleteSession = async (sessionId) => {
     await deleteSession(sessionId);
     await refreshData();
@@ -94,6 +99,8 @@ function AppContent() {
           <ChildManager 
             childrenList={childrenList}
             onCreateChild={handleCreateChild}
+            onDeleteChild={handleDeleteChild}
+            onRefresh={refreshData}
           />
         )}
 

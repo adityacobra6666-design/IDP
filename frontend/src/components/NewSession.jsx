@@ -151,11 +151,14 @@ export default function NewSession({
                   onChange={e => setSelectedChildId(e.target.value)}
                   required
                 >
-                  {childrenList.map(c => (
-                    <option key={c.id} value={c.id}>
-                      {c.external_id} ({c.age_months} months, {c.gender})
-                    </option>
-                  ))}
+                  {childrenList.map((c, idx) => {
+                    const profLabel = c.profile_number ? `Profile #${String(c.profile_number).padStart(2, '0')}` : `Profile #${String(idx + 1).padStart(2, '0')}`;
+                    return (
+                      <option key={c.id} value={c.id}>
+                        {profLabel} - {c.external_id} ({c.age_months} mos, {c.gender})
+                      </option>
+                    );
+                  })}
                 </select>
               )}
             </div>

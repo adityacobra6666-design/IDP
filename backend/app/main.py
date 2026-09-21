@@ -6,12 +6,12 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.core.logging import logger
 from app.core.exceptions import NeuroTrackException
-from app.models.database import engine, Base, SessionLocal
+from app.models.database import engine, Base, SessionLocal, init_db_schema
 from app.api.routes import health, children, tasks, sessions, results, system
 from app.repositories.task_repository import TaskRepository
 
-# Auto-create DB tables schema
-Base.metadata.create_all(bind=engine)
+# Auto-create DB tables schema and apply column checks
+init_db_schema()
 
 # Seed standard task definitions catalog ONLY (Joint Attention & Imitation task types definition)
 with SessionLocal() as db:

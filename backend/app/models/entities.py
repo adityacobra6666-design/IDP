@@ -16,10 +16,30 @@ class Child(Base):
     age_months = Column(Integer, nullable=False)
     gender = Column(String(20), nullable=False)
     notes = Column(Text, nullable=True)
+    profile_number = Column(Integer, unique=True, nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     sessions = relationship("Session", back_populates="child", cascade="all, delete-orphan")
+    questionnaire = relationship("ParentQuestionnaire", back_populates="child", uselist=False, cascade="all, delete-orphan")
+
+class ParentQuestionnaire(Base):
+    __tablename__ = "parent_questionnaires"
+    
+    id = Column(String(36), primary_key=True, default=generate_uuid, index=True)
+    child_id = Column(String(36), ForeignKey("children.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+    developmental_context = Column(JSON, nullable=True)
+    communication = Column(JSON, nullable=True)
+    social_interaction = Column(JSON, nullable=True)
+    attention_engagement = Column(JSON, nullable=True)
+    imitation_play = Column(JSON, nullable=True)
+    sensory_context = Column(JSON, nullable=True)
+    parent_observations = Column(Text, nullable=True)
+    session_context = Column(String(100), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    child = relationship("Child", back_populates="questionnaire")
 
 class Task(Base):
     __tablename__ = "tasks"
